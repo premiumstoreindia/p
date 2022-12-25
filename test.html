@@ -3,22 +3,68 @@
 // Set the URL of the M3U playlist
 $playlist_url = "http://example.com/tataplay.m3u";
 
-// Parse the M3U playlist into an array of channels and URLs
+// Parse the M3U playlist into an array of channels
 $channels = parse_m3u_playlist($playlist_url);
-
-// Set the URL of the default video quality
-$default_url = "http://example.com/video-720p.mp4";
-
-// Set the available video qualities and their URLs
-$qualities = array(
-	"480p" => "http://example.com/video-480p.mp4",
-	"720p" => "http://example.com/video-720p.mp4",
-	"1080p" => "http://example.com/video-1080p.mp4"
-);
 
 // Check if a channel has been selected
 if (isset($_GET['channel'])) {
 	// Get the selected channel
 	$selected_channel = $_GET['channel'];
+} else {
+	// Select the first channel by default
+	$selected_channel = $channels[0];
+}
+
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Tata Sky / JioTV Playlist</title>
+</head>
+<body>
+	<!-- Display the channels in a grid using a table -->
+	<table>
+		<tr>
+			<?php
+				// Iterate through the array of channels and display each channel in a separate cell
+				foreach ($channels as $channel) {
+					echo "<td><a href='?channel=$channel'>$channel</a></td>";
+				}
+			?>
+		</tr>
+	</table>
 	
-	// Set the URL of the selected
+	<!-- Display the selected channel using the audio element -->
+	<audio src="<?php echo $playlist_url; ?>#<?php echo $selected_channel; ?>" controls></audio>
+	
+	<?php
+		// Function to parse an M3U playlist into an array of channels
+		function parse_m3u_playlist($url) {
+			// Initialize an array to store the channels
+			$channels = array();
+			
+			// Download the M3U playlist from the URL
+			$playlist = file_get_contents($url);
+			
+			// Split the playlist into lines
+			$lines = explode("\n", $playlist);
+			
+			// Iterate through the lines and extract the channel names
+			foreach ($lines as $line) {
+				// Check if the line is a channel entry
+				if (strpos($line, "#EXTINF:") === 0) {
+					// Extract the channel name from the line
+					$channel = substr($line, strpos($line, ",") + 1);
+					
+					// Add the channel to the array
+					$channels[] = $channel;
+				}
+			}
+			
+			// Return the array of channels
+			return $channels;
+		}
+	?>
+</body>
+</html>
